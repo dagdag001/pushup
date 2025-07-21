@@ -1,187 +1,211 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <title>100 Push-ups Tracker</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <style>
-    :root{
-      --bg:#fff; --fg:#111; --accent:#ff4757;
-    }
-    @media (prefers-color-scheme:dark){
-      :root{ --bg:#1e1e1e; --fg:#eee; }
-    }
-    body{
-      margin:0 auto; max-width:420px; padding:1rem;
-      font-family:system-ui, sans-serif;
-      background:var(--bg); color:var(--fg);
-    }
-    h1{ text-align:center; margin:.5rem 0 1rem; }
-    section{ margin:1.2rem 0; }
-    input[type=number]{ width:60px }
-    button{ cursor:pointer; padding:.3rem .6rem }
-    .progress{ width:100%; height:20px; margin-top:.5rem }
-    ul{ list-style:none; padding:0 }
-    li{ display:flex; justify-content:space-between; padding:.2rem 0 }
-    .delete{ color:#ff4757; cursor:pointer }
-    #chart{ margin-top:1rem }
-  </style>
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <title>100 Push-ups Tracker</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-<h1>Push-up Tracker</h1>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Push-up Tracker</h1>
 
-<section>
-  <label>Daily goal
-    <input id="goalInput" type="number" min="1" value="100">
-  </label>
-  <button id="saveGoalBtn">Save</button>
-</section>
+    <section>
+      <label
+        >Daily goal
+        <input id="goalInput" type="number" min="1" value="100" />
+      </label>
+      <button id="saveGoalBtn">Save</button>
+    </section>
 
-<section>
-  <input id="pushInput" type="number" min="1" placeholder="How many?">
-  <button id="addBtn">Add</button>
-  <button id="undoBtn" hidden>Undo last</button>
-</section>
+    <section>
+      <input id="pushInput" type="number" min="1" placeholder="How many?" />
+      <button id="addBtn">Add</button>
+      <button id="undoBtn" hidden>Undo last</button>
+    </section>
 
-<section>
-  <p>Today: <span id="todayTotal">0</span> / <span id="goalDisplay">100</span></p>
-  <progress id="progress" class="progress" max="100" value="0"></progress>
-  <p id="leftText">100 left</p>
-  <p id="motivation" hidden>🎉 Goal reached – great job!</p>
-</section>
+    <section>
+      <p>
+        Today: <span id="todayTotal">0</span> /
+        <span id="goalDisplay">100</span>
+      </p>
+      <progress id="progress" class="progress" max="100" value="0"></progress>
+      <p id="leftText">100 left</p>
+      <p id="motivation" hidden>🎉 Goal reached – great job!</p>
+    </section>
 
-<section>
-  <h2>Today's sessions</h2>
-  <ul id="todayList"></ul>
-</section>
+    <section>
+      <h2>Today's sessions</h2>
+      <ul id="todayList"></ul>
+    </section>
 
-<section>
-  <h2>Last 7 days</h2>
-  <canvas id="chart" width="400" height="200"></canvas>
-</section>
+    <section>
+      <h2>Last 7 days</h2>
+      <canvas id="chart" width="400" height="200"></canvas>
+    </section>
 
-<script type="module">
-/* ---------- CONFIG ---------- */
-const LS_KEY = 'pushupTracker';
-let state = JSON.parse(localStorage.getItem(LS_KEY)) || {
-  dailyGoal: 100,
-  sessions: []
-};
+    <script type="module">
+      /* ---------- CONFIG ---------- */
+      const LS_KEY = "pushupTracker";
+      let state = JSON.parse(localStorage.getItem(LS_KEY)) || {
+        dailyGoal: 100,
+        sessions: [],
+      };
 
-/* ---------- UTILS ---------- */
-const todayISO = () => new Date().toISOString().slice(0,10);
-const isToday = ts => new Date(ts).toISOString().slice(0,10) === todayISO();
-const save = () => localStorage.setItem(LS_KEY, JSON.stringify(state));
+      /* ---------- UTILS ---------- */
+      const todayISO = () => new Date().toISOString().slice(0, 10);
+      const isToday = (ts) =>
+        new Date(ts).toISOString().slice(0, 10) === todayISO();
+      const save = () => localStorage.setItem(LS_KEY, JSON.stringify(state));
 
-/* ---------- DOM ---------- */
-const goalInput  = document.getElementById('goalInput');
-const saveGoalBtn= document.getElementById('saveGoalBtn');
-const pushInput  = document.getElementById('pushInput');
-const addBtn     = document.getElementById('addBtn');
-const undoBtn    = document.getElementById('undoBtn');
-const todayTotal = document.getElementById('todayTotal');
-const goalDisplay= document.getElementById('goalDisplay');
-const progress   = document.getElementById('progress');
-const leftText   = document.getElementById('leftText');
-const motivation = document.getElementById('motivation');
-const todayList  = document.getElementById('todayList');
+      /* ---------- DOM ---------- */
+      const goalInput = document.getElementById("goalInput");
+      const saveGoalBtn = document.getElementById("saveGoalBtn");
+      const pushInput = document.getElementById("pushInput");
+      const addBtn = document.getElementById("addBtn");
+      const undoBtn = document.getElementById("undoBtn");
+      const todayTotal = document.getElementById("todayTotal");
+      const goalDisplay = document.getElementById("goalDisplay");
+      const progress = document.getElementById("progress");
+      const leftText = document.getElementById("leftText");
+      const motivation = document.getElementById("motivation");
+      const todayList = document.getElementById("todayList");
 
-/* ---------- RENDER ---------- */
-function render(){
-  /* goal */
-  goalInput.value = state.dailyGoal;
-  goalDisplay.textContent = state.dailyGoal;
-  progress.max = state.dailyGoal;
+      /* ---------- RENDER ---------- */
+      function render() {
+        /* goal */
+        goalInput.value = state.dailyGoal;
+        goalDisplay.textContent = state.dailyGoal;
+        progress.max = state.dailyGoal;
 
-  /* today */
-  const todaySum = state.sessions.filter(s=>isToday(s.timestamp))
-                                 .reduce((a,s)=>a+s.count,0);
-  todayTotal.textContent = todaySum;
-  progress.value = todaySum;
-  const left = Math.max(0, state.dailyGoal - todaySum);
-  leftText.textContent = `${left} left`;
-  motivation.hidden = todaySum < state.dailyGoal;
+        /* today */
+        const todaySum = state.sessions
+          .filter((s) => isToday(s.timestamp))
+          .reduce((a, s) => a + s.count, 0);
+        todayTotal.textContent = todaySum;
+        progress.value = todaySum;
+        const left = Math.max(0, state.dailyGoal - todaySum);
+        leftText.textContent = `${left} left`;
+        motivation.hidden = todaySum < state.dailyGoal;
 
-  /* list */
-  todayList.innerHTML = '';
-  state.sessions.filter(s=>isToday(s.timestamp))
-                .reverse()
-                .forEach((s,i,arr)=>{
-    const li = document.createElement('li');
-    const t = new Date(s.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    li.innerHTML = `<span>${s.count} push-ups @ ${t}</span>
-                    <span class="delete" data-idx="${state.sessions.indexOf(s)}">×</span>`;
-    todayList.append(li);
-  });
+        /* list */
+        todayList.innerHTML = "";
+        state.sessions
+          .filter((s) => isToday(s.timestamp))
+          .reverse()
+          .forEach((s, i, arr) => {
+            const li = document.createElement("li");
+            const t = new Date(s.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            li.innerHTML = `<span>${s.count} push-ups @ ${t}</span>
+                    <span class="delete" data-idx="${state.sessions.indexOf(
+                      s
+                    )}">×</span>`;
+            todayList.append(li);
+          });
 
-  undoBtn.hidden = !state.sessions.length;
-  drawChart();
-}
+        undoBtn.hidden = !state.sessions.length;
+        drawChart();
+      }
 
-/* ---------- ACTIONS ---------- */
-function saveGoal(){
-  const g = Number(goalInput.value);
-  if(g>0){ state.dailyGoal = g; save(); render(); }
-}
-function addSession(){
-  const n = Number(pushInput.value);
-  if(!n) return;
-  state.sessions.push({count:n, timestamp:Date.now()});
-  pushInput.value='';
-  save(); render();
-}
-function deleteSession(idx){
-  state.sessions.splice(idx,1);
-  save(); render();
-}
-function undoLast(){
-  state.sessions.pop();
-  save(); render();
-}
+      /* ---------- ACTIONS ---------- */
+      function saveGoal() {
+        const g = Number(goalInput.value);
+        if (g > 0) {
+          state.dailyGoal = g;
+          save();
+          render();
+        }
+      }
+      function addSession() {
+        const n = Number(pushInput.value);
+        if (!n) return;
+        state.sessions.push({ count: n, timestamp: Date.now() });
+        pushInput.value = "";
+        save();
+        render();
+      }
+      function deleteSession(idx) {
+        state.sessions.splice(idx, 1);
+        save();
+        render();
+      }
+      function undoLast() {
+        state.sessions.pop();
+        save();
+        render();
+      }
 
-/* ---------- EVENTS ---------- */
-saveGoalBtn.onclick = saveGoal;
-addBtn.onclick = addSession;
-undoBtn.onclick = undoLast;
-goalInput.addEventListener('keydown',e=>e.key==='Enter'&&saveGoal());
-pushInput.addEventListener('keydown',e=>e.key==='Enter'&&addSession());
-todayList.addEventListener('click',e=>{
-  if(e.target.classList.contains('delete')){
-    deleteSession(Number(e.target.dataset.idx));
-  }
-});
+      /* ---------- EVENTS ---------- */
+      saveGoalBtn.onclick = saveGoal;
+      addBtn.onclick = addSession;
+      undoBtn.onclick = undoLast;
+      goalInput.addEventListener(
+        "keydown",
+        (e) => e.key === "Enter" && saveGoal()
+      );
+      pushInput.addEventListener(
+        "keydown",
+        (e) => e.key === "Enter" && addSession()
+      );
+      todayList.addEventListener("click", (e) => {
+        if (e.target.classList.contains("delete")) {
+          deleteSession(Number(e.target.dataset.idx));
+        }
+      });
 
-/* ---------- CHART ---------- */
-let chart;
-async function drawChart(){
-  const { Chart } = await import('https://cdn.jsdelivr.net/npm/chart.js/+esm');
-  const ctx = document.getElementById('chart');
-  if(chart) chart.destroy();
+      /* ---------- CHART ---------- */
+      let chart;
+      async function drawChart() {
+        const { Chart } = await import(
+          "https://cdn.jsdelivr.net/npm/chart.js/+esm"
+        );
+        const ctx = document.getElementById("chart");
+        if (chart) chart.destroy();
 
-  /* aggregate last 7 days */
-  const days = Array.from({length:7},(_,i)=>{
-    const d=new Date(); d.setDate(d.getDate()-i);
-    return d.toISOString().slice(0,10);
-  }).reverse();
+        /* aggregate last 7 days */
+        const days = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          return d.toISOString().slice(0, 10);
+        }).reverse();
 
-  const sums = days.map(d=>
-    state.sessions.filter(s=>new Date(s.timestamp).toISOString().slice(0,10)===d)
-                  .reduce((a,s)=>a+s.count,0)
-  );
+        const sums = days.map((d) =>
+          state.sessions
+            .filter(
+              (s) => new Date(s.timestamp).toISOString().slice(0, 10) === d
+            )
+            .reduce((a, s) => a + s.count, 0)
+        );
 
-  chart = new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels: days.map(d=>d.slice(5)),
-      datasets:[{ label:'Push-ups', data:sums, backgroundColor:'var(--accent)' }]
-    },
-    options:{ plugins:{ legend:{ display:false } }, responsive:true, maintainAspectRatio:false }
-  });
-}
+        chart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: days.map((d) => d.slice(5)),
+            datasets: [
+              {
+                label: "Push-ups",
+                data: sums,
+                backgroundColor: "var(--accent)",
+              },
+            ],
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
+      }
 
-/* ---------- INIT ---------- */
-render();
-</script>
-</body>
+      /* ---------- INIT ---------- */
+      render();
+    </script>
+  </body>
 </html>
